@@ -1,4 +1,6 @@
-This repository provides code and some aggregated data to reproduce the analyses in PUBLICATION. Session info is provided in 'DEF_sessionInfo__2020-11-02.*'.
+# Divergent occurrences of juvenile and adult trees are explained by both environmental change and ontogenetic niche shifts
+
+This repository provides code and aggregated data to reproduce the analyses in PUBLICATION. Session info is provided in 'DEF_sessionInfo__2020-11-02.*'.
 
 The main script
 - 'Fit beta.R' performs the complete analysis with already aggregated data that is provided with 'Data/taxtables_pres_thresholdsubset.rds'.
