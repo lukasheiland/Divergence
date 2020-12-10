@@ -1,0 +1,37 @@
+R version 4.0.2 (2020-06-22)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Catalina 10.15.7
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
+
+locale:
+[1] de_DE.UTF-8/de_DE.UTF-8/de_DE.UTF-8/C/de_DE.UTF-8/de_DE.UTF-8
+
+attached base packages:
+[1] grid      parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] gridGraphics_0.5-0 cowplot_1.0.0      lubridate_1.7.9    colorspace_1.4-1   extrafont_0.17     multcomp_1.4-13   
+ [7] TH.data_1.0-10     MASS_7.3-51.6      survival_3.2-3     mvtnorm_1.1-1      lsmeans_2.30-0     emmeans_1.4.8     
+[13] sjPlot_2.8.4       psych_1.9.12.31    qgam_1.3.2         mgcv_1.8-31        nlme_3.1-148       DHARMa_0.3.2.0    
+[19] effects_4.1-4      carData_3.0-4      ggeffects_0.15.0   glmmTMB_1.0.2.1    stringi_1.5.3      glue_1.4.2        
+[25] magrittr_1.5       forcats_0.5.0      stringr_1.4.0      dplyr_1.0.2        purrr_0.3.4        readr_1.3.1       
+[31] tidyr_1.1.0        tibble_3.0.4       ggplot2_3.3.2.9000 tidyverse_1.3.0   
+
+loaded via a namespace (and not attached):
+ [1] minqa_1.2.4       ellipsis_0.3.1    sjlabelled_1.1.6  rprojroot_1.3-2   estimability_1.3  parameters_0.8.0 
+ [7] fs_1.4.2          rstudioapi_0.11   fansi_0.4.1       xml2_1.3.2        codetools_0.2-16  splines_4.0.2    
+[13] mnormt_2.0.1      doParallel_1.0.15 knitr_1.30        sjmisc_2.8.5      jsonlite_1.7.1    nloptr_1.2.2.2   
+[19] Rttf2pt1_1.3.8    broom_0.5.6       dbplyr_1.4.4      effectsize_0.3.1  shiny_1.5.0       compiler_4.0.2   
+[25] httr_1.4.1        sjstats_0.18.0    backports_1.1.10  assertthat_0.2.1  Matrix_1.2-18     fastmap_1.0.1    
+[31] survey_4.0        cli_2.1.0         later_1.1.0.1     htmltools_0.5.0   tools_4.0.2       coda_0.19-3      
+[37] gtable_0.3.0      Rcpp_1.0.5        cellranger_1.1.0  vctrs_0.3.4       extrafontdb_1.0   iterators_1.0.12 
+[43] insight_0.8.5     xfun_0.18         lme4_1.1-23       rvest_0.3.5       mime_0.9          lifecycle_0.2.0  
+[49] statmod_1.4.34    zoo_1.8-8         scales_1.1.1      hms_0.5.3         promises_1.1.1    sandwich_2.5-1   
+[55] TMB_1.7.18        bayestestR_0.7.0  foreach_1.5.0     boot_1.3-25       rlang_0.4.8       pkgconfig_2.0.3  
+[61] lattice_0.20-41   tidyselect_1.1.0  plyr_1.8.6        R6_2.5.0          generics_0.0.2    DBI_1.1.0        
+[67] pillar_1.4.6      haven_2.3.1       withr_2.3.0       nnet_7.3-14       performance_0.4.7 modelr_0.1.8     
+[73] crayon_1.3.4      tmvnsim_1.0-2     readxl_1.3.1      blob_1.2.1        reprex_0.3.0      digest_0.6.27    
+[79] xtable_1.8-4      httpuv_1.5.4      munsell_0.5.0     mitools_2.4      
