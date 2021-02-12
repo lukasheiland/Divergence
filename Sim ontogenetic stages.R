@@ -545,13 +545,16 @@ plotOntogenetic <- function(model, pars, filter_j = c(0.5, 0.13), filter_a = c(0
     
     plot <- ggdraw(plot) +
       draw_plot(lineplot, x = 0.55, y = 0.36, width = 0.45, height = 0.65) # + draw_plot_label(c("A", "B"), c(0, 0.45), c(1, 0.95), size = 12)
+    
+    ## Attach "attribute" to the ggplot object, for later extraction
+    plot$Effects <- E
   }
   
   ## Attach "attributes" to the ggplot object, for later extraction
   plot$simparameters <- pars
   plot$Abundance <- A
   plot$filterparameters <- attr(A, "filterparameters")
-  
+
   return(plot)
 }
 
@@ -573,6 +576,9 @@ plotTemporal <- function(model, pars, filter_j = c(0.5, 0.13), filter_a = c(0.5,
     
     plot <- ggdraw(plot) +
       draw_plot(lineplot, x = 0.55, y = 0.36, width = 0.45, height = 0.65) # + draw_plot_label(c("A", "B"), c(0, 0.45), c(1, 0.95), size = 12)
+    
+    ## Attach "attribute" to the ggplot object, for later extraction
+    plot$Effects <- E
   }
   
   ## Attach "attributes" to the ggplot object, for later extraction
@@ -856,6 +862,46 @@ shiftgrid_combined <- cowplot::plot_grid(rEnv(plot_M_temp_m),
                                          labels = c("A", "B", "C", "D", ""), label_size = 14)
 cowplot::save_plot(glue("Publishing/Plots/Sim.pdf"), shiftgrid_combined, base_height = 9, base_asp = 1.45, device = cairo_pdf) # cairo_pdf will embed fonts!
 gc()
+
+
+
+# Extract estimates for dotplots ------------------------------------------
+### This prodices dotplots from the simulations for post-hoc introduction into simulation plots
+
+plotE <- function(E, flipped = F) {
+  ## dirty hack for boolean factor levels
+  E <- rbind(E, NA)
+  E[4,"signif"] <- FALSE
+  
+  p <- ggplot(E,
+                    aes(x, # Ordered by the weighted mean of the absolute ontogeny effect size, given significance.
+                        estimate,
+                        ymin = lower.CL,
+                        ymax = upper.CL)) +
+    
+    #### This is just the background grid
+    geom_hline(yintercept=c(0), linetype = "dotted") +
+    geom_hline(yintercept=c(-0.05, 0.05), linetype = "dotted", color = "#D4D7DC") +
+    
+    geom_point(aes(shape = signif), size = 2.2, stroke = 0.5, alpha = 1) + # aes(size = signif, alpha = signif)
+    # scale_size_manual(values = c(2.5, 2)) + # larger for nonsignificant
+    geom_linerange(aes(alpha = signif)) +
+    scale_shape_manual(values = c(1, 16)) + # Solid for significant
+    scale_alpha_discrete(range = c(0.42, 1)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1), n.breaks = 8) +
+    theme_ockham(
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_text(face = "italic")) +
+    { if(flipped) coord_flip() }
+  return(p)
+}
+
+eplot_temp <- plot_M_temp_m$Effects %>% mutate(x = coalesce(contrast, ontogeny)) %>% plotE(flipped = T)
+eplot_ont <- plot_M_ont_m$Effects %>% mutate(x = coalesce(contrast, ontogeny)) %>% plotE(flipped = T)
+eplot_both <- plot_M_both_m$Effects %>% mutate(x = coalesce(contrast, ontogeny)) %>% plotE(flipped = T)
+
+doplotgrid <-  cowplot::plot_grid(eplot_temp, eplot_ont, eplot_both)
+cowplot::save_plot(glue("Publishing/Plots/Sim_dotplots.pdf"), doplotgrid, device = cairo_pdf) # cairo_pdf will embed fonts!
 
 
 

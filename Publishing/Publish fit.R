@@ -113,7 +113,7 @@ getAt <- function(targetcol, withincol, at) {
 }
 
 getM <- function(x, se) {
-  m <- weighted.mean(x, 1/se, na.rm = T)
+  m <- weighted.mean(x, 1/(se^2), na.rm = T)
   # m[is.nan(m)] <- 0
   return(m)
 }
@@ -215,17 +215,14 @@ E_count_cwb <- filter(E_count, env == "cwbYear_aclim_01")
 #######################################################################
 # Map ------------------------------------------------------------------##
 ##########################################################################
-## This section will break because data with original coordinates cannot be provided
 
 # Load plot points --------------------------------------------------------
 equalearthproj <- "+proj=laea +x_0=0 +y_0=0 +lon_0=0 +lat_0=0" # Lambert
 
-plotid_pres <- readRDS("Data/taxtables_pres_thresholdsubset_anon.rds") %>%
+plotid_pres <- readRDS("Data/taxtables_pres_thresholdsubset.rds") %>%
   bind_rows() %$%
   plotid %>%
   unique()
-
-## Data not provided!
 Plots <- readRDS(glue("{inventoriespath}/Combined data/Env.rds")) %>%
   filter(plotid %in% plotid_pres) %>%
   unique() %>%
@@ -353,8 +350,6 @@ cowplot::save_plot(glue("Publishing/Plots/Map_gdd_cwb.pdf"), mapgrid_gdd, base_h
 ######################################################################################
 
 
-
-
 # effectplot_allinone <- ggplot(E,
 #                      mapping = aes(x = enveff, y = estimate, ymin = lower.CL, ymax = upper.CL, group = effect, col = env)) +
 #   theme_ockham(xlabangle = 60, rangeframemap = aes(y = NULL)) + ## the theme.
@@ -398,52 +393,51 @@ cowplot::save_plot(glue("Publishing/Plots/Map_gdd_cwb.pdf"), mapgrid_gdd, base_h
 
 
 
-# plotAverage <- function(E_sub, rangeframemap, ...) {
-#   
-#   effectplot <- ggplot(E_sub, mapping = aes(x = inv, y = estimate, ymin = lower.CL, ymax = upper.CL, col = estimate > 0)) +
-#     
-#     ## setting up the background grid
-#     geom_tile(aes(height = Inf, fill = inv), lwd = 0, colour = "transparent") +
-#     scale_fill_manual(values = rep_len(c(backgroundcolor, "transparent"), nrow(E_sub)), guide = "none") + # "#697285" "#A9AFB9" "#D4D7DC" "#EAEBEE" "#EFF0F2" "#F5F6F7" "#F7F8F9" are blends between basecolor and white
-#     geom_hline(yintercept = 0, linetype= "dotted") +
-#     
-#     ## effect estimates
-#     # geom_pointrange(position = position_jitter(width = 0.2, seed = 10), alpha = 0.2, size = 1, fatten = 0.9) + # fatten is multiplicative in/decreases point compared to bar
-#     geom_point(size = 1.5, alpha = 0.2, shape = 16, position = position_jitter(width = 0.2, seed = 10)) +
-#     geom_linerange(size = 0.5, alpha = 0.2, position = position_jitter(width = 0.2, seed = 10)) +
-#     
-#     ## weighted average effects 
-#     geom_segment(aes(x = inv, xend = inv, y = 0, yend = m_env.eff.inv_pos, col = T),
-#                  arrow = arrow(angle = 20, ends = "last", length = unit(8, "pt")), size = 0.8, position = position_nudge(0.07)) +
-#     geom_segment(aes(x = inv, xend = inv, y = 0, yend = m_env.eff.inv_neg, col = F),
-#                  arrow = arrow(angle = 20, ends = "last", length = unit(8, "pt")), size = 0.8, position = position_nudge(-0.07)) +
-#     colorscale_direction_gdd + # color scale for arrows etc.
-#     
-#     ## additional labeling
-#     # geom_text(aes(label = displayname_inveff), na.rm = TRUE, nudge_x = 0.02, cex = 2.5) +
-#     
-#     ## axes and layout
-#     xlab(NULL) + ylab(NULL) +
-#     ggtitle("Title") +
-#     coord_flip() +
-#     facet_wrap(~ effect, labeller = as_labeller(function(f) paste(ifelse(f == "ontogeny", "life stage", f), "shift"))) + ## facet layout
-#     
-#     theme_ockham(rangeframemap = aes(x = NULL),
-#                  panel.spacing.x = unit(-8, "lines"),
-#                  axis.ticks.y = element_blank(),
-#                  ...
-#     ) + ## the theme.
-#     
-#     scale_y_continuous(labels = scales::percent_format(accuracy = 1)) # limits = c(-0.09, 0.09)
-#   
-#   grid <- cowplot::plot_grid(rangeframemap, effectplot, nrow = 1, rel_widths = c(3, 3.3))
-#   return(grid)
-# }
-# 
-# 
-# averagegrid_gdd <- plotAverage(E_gdd, map_gdd, legend = "bottom")
-# cowplot::save_plot(glue("Publishing/Plots/{loadrunid}_Average_gdd.pdf"), averagegrid_gdd, base_height = 7, base_asp = 2, device = cairo_pdf, bg = "transparent") # cairo_pdf will embed fonts!
+plotAverage <- function(E_sub, rangeframemap, ...) {
+  
+  effectplot <- ggplot(E_sub, mapping = aes(x = inv, y = estimate, ymin = lower.CL, ymax = upper.CL, col = estimate > 0)) +
+    
+    ## setting up the background grid
+    geom_tile(aes(height = Inf, fill = inv), lwd = 0, colour = "transparent") +
+    scale_fill_manual(values = rep_len(c(backgroundcolor, "transparent"), nrow(E_sub)), guide = "none") + # "#697285" "#A9AFB9" "#D4D7DC" "#EAEBEE" "#EFF0F2" "#F5F6F7" "#F7F8F9" are blends between basecolor and white
+    geom_hline(yintercept = 0, linetype= "dotted") +
+    
+    ## effect estimates
+    # geom_pointrange(position = position_jitter(width = 0.2, seed = 10), alpha = 0.2, size = 1, fatten = 0.9) + # fatten is multiplicative in/decreases point compared to bar
+    geom_point(size = 1.5, alpha = 0.2, shape = 16, position = position_jitter(width = 0.2, seed = 10)) +
+    geom_linerange(size = 0.5, alpha = 0.2, position = position_jitter(width = 0.2, seed = 10)) +
+    
+    ## weighted average effects 
+    geom_segment(aes(x = inv, xend = inv, y = 0, yend = m_env.eff.inv_pos, col = T),
+                 arrow = arrow(angle = 20, ends = "last", length = unit(8, "pt")), size = 0.8, position = position_nudge(0.07)) +
+    geom_segment(aes(x = inv, xend = inv, y = 0, yend = m_env.eff.inv_neg, col = F),
+                 arrow = arrow(angle = 20, ends = "last", length = unit(8, "pt")), size = 0.8, position = position_nudge(-0.07)) +
+    colorscale_direction_gdd + # color scale for arrows etc.
+    
+    ## additional labeling
+    # geom_text(aes(label = displayname_inveff), na.rm = TRUE, nudge_x = 0.02, cex = 2.5) +
+    
+    ## axes and layout
+    xlab(NULL) + ylab(NULL) +
+    ggtitle("Title") +
+    coord_flip() +
+    facet_wrap(~ effect, labeller = as_labeller(function(f) paste(ifelse(f == "ontogeny", "life stage", f), "shift"))) + ## facet layout
+    
+    theme_ockham(rangeframemap = aes(x = NULL),
+                 panel.spacing.x = unit(-8, "lines"),
+                 axis.ticks.y = element_blank(),
+                 ...
+    ) + ## the theme.
+    
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) # limits = c(-0.09, 0.09)
+  
+  grid <- cowplot::plot_grid(rangeframemap, effectplot, nrow = 1, rel_widths = c(3, 3.3))
+  return(grid)
+}
 
+
+averagegrid_gdd <- plotAverage(E_gdd, map_gdd, legend = "bottom")
+cowplot::save_plot(glue("Publishing/Plots/{loadrunid}_Average_gdd.pdf"), averagegrid_gdd, base_height = 7, base_asp = 2, device = cairo_pdf, bg = "transparent") # cairo_pdf will embed fonts!
 
 # averagegrid_cwb <- plotAverage(E_cwb, map_cwb, legend = "bottom")
 # cowplot::save_plot(glue("Publishing/Plots/{loadrunid}_Average_cwb.pdf"), averagegrid_cwb, base_height = 7, base_asp = 2, device = cairo_pdf) # cairo_pdf will embed fonts!
@@ -749,7 +743,7 @@ Regtable <- Table %>%
   
   # keep only first row for factors 
   group_by(env, inventory, tax) %>%
-  mutate_at(c("tax", "n_clusters_ES", "n", "direction", "yr_betweenAvg", "yr_max"), keepFirstRow) %>% # not years!
+  mutate_at(c("tax", "n_clusters_ES", "direction", "yr_betweenAvg", "yr_max"), keepFirstRow) %>% # not years!
   
   group_by(env, inventory) %>%
   mutate(environment = env) %>% # for later sorting
@@ -759,7 +753,7 @@ Regtable <- Table %>%
   dplyr::select(environment, e = env, i = inventory, S = tax,
                 adult_c = "(Intercept)_cond", "time:adult_c" = time_cond, juvenile_c = ontogenysmall_cond, "time:juvenile_c" = "time:ontogenysmall_cond",
                 adult = "(Intercept)_disp", "time:adult" = time_disp, juvenile = ontogenysmall_disp, "time:juvenile" = "time:ontogenysmall_disp",
-                "temp. shift" = timeeffect, "juv. divergence" = ontogenyeffect, direction, "no. presences" = n, ,
+                "temp. shift" = timeeffect, "juv. divergence" = ontogenyeffect, direction, "no. presences" = n_pres,
                 "years betw. avg." = yr_betweenAvg, "tot. period" = years, "no. clusters" = n_clusters_ES)
 
 
@@ -774,7 +768,7 @@ alignment <- c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c", "c",
 # striped <- rep(seq(from = 0, to = nrow(Table)-5, by = 6), each = 3) + 1:3
 opencurly <- "{"
 closecurly <- "}"
-caption <- "\\label{opencurly}tab:regtable_{str_replace(envname, fixed(' '), '_')}{closecurly} Regression estimates for {envname} with effects on mean $\\mu$ and dispersion parameter (precision) $\\phi$. The estimate for adults corresponds to the intercept, while other estimates are given as default treatment contrasts. For the models fitted to Spanish data, which had an additional fixed effect fitted for geographical clusters, contrast-equivalent marginal means and trends, averaged over the geographical clusters, are provided. In addition, marginal occurrence shifts on the response scale are given in percent of the sampled European gradient (shifts). The juvenile divergence is approximately equivalent to the following addition of model contrasts: \\code{opencurly}plogis(ad + juv) - plogis(ad){closecurly}. The temporal shift is approximately equivalent to \\code{opencurly}plogis(ad + juv +  time:ad + time:juv) - plogis(ad + juv){closecurly}. Stars * mark significant effects ($Pr(>|z|) = p < 0.05$). Arrows mark significant juvenile divergences that are either significantly opposite ($\\rightleftarrows$) or are significant in the same direction ($\\rightrightarrows$) as the temporal shift (one-sided test, $Pr(>|z|) = p < 0.05$). In addition the number of presences is given (number of total assessed plots in Supplementary Table \\ref{opencurly}tab:scope{closecurly}). Years between averages detail the difference between the average times of the presences at the second and the first sampling, while the total period spans all years with presences within country and species. Finally, the number of geographical clusters with presences in Spain is given."
+caption <- "\\label{opencurly}tab:regtable_{str_replace(envname, fixed(' '), '_')}{closecurly} Regression estimates for {envname} with effects on mean $\\mu$ and dispersion parameter (precision) $\\phi$. The estimate for adults corresponds to the intercept, while other estimates are given as default treatment contrasts. For the models fitted to Spanish data, which had an additional fixed effect fitted for geographical clusters, contrast-equivalent marginal means and trends, averaged over the geographical clusters, are provided. In addition, marginal occurrence shifts on the response scale are given in percent of the sampled European gradient (shifts). The juvenile divergence is approximately equivalent to the following addition of model contrasts: \\code{opencurly}plogis(ad + juv) - plogis(ad){closecurly}. The temporal shift is approximately equivalent to \\code{opencurly}plogis(ad + juv +  time:ad + time:juv) - plogis(ad + juv){closecurly}. Stars * mark significant effects ($Pr(>|z|) = p < 0.05$). Arrows mark significant juvenile divergences that are either significantly opposite ($\\rightleftarrows$) or are significant in the same direction ($\\rightrightarrows$) as the temporal shift (one-sided test, $Pr(>|z|) = p < 0.05$). In addition the number of presences per life stage is given (juveniles:adults, number of total assessed plots in Supplementary Table \\ref{opencurly}tab:scope{closecurly}). Years between averages detail the difference between the average times of the presences at the second and the first sampling, while the total period spans all years with presences within country and species. Finally, the number of geographical clusters with presences in Spain is given."
 
 Regtable_gdd <- dplyr::filter(Regtable, environment == "heat sum")
 Regtable_cwb <- dplyr::filter(Regtable, environment == "water availability")
@@ -819,16 +813,12 @@ catTable(Regtable_cwb, writetopaper = F)
 
 
 # Scope table --------------------------------------------------------
-
-## Section will break because original data with coordinates cannot be provided.
-
 Scopetable <- Table %>%
   droplevels() %>%
   dplyr::group_by(inventory) %>% # yr_betweenAvg
   summarize("selected species" = n_distinct(tax), "total period" = glue("{min(year1)}–{max(year2)}")) %>%
   dplyr::select("country" = "inventory", "selected species", "total period")
 
-## Origina data referenced here not provided!
 # Extract total number of assessed plots, not only presences of the chosen species
 Plots_complete <- readRDS(glue("{inventoriespath}/Combined data/Env.rds")) %>%
   as.data.frame() %>% # drop geometry

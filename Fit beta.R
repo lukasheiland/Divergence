@@ -50,7 +50,7 @@ source('Theme.R') # Load ggplot themes, colors.
 
 # Load data ---------------------------------------------------------------
 
-taxtables_pres <- readRDS('Data/taxtables_pres_thresholdsubset_anon.rds')
+taxtables_pres <- readRDS('Data/taxtables_pres_thresholdsubset.rds')
 
 
 # Requirements for plotting -------------------------------------------------
@@ -151,8 +151,9 @@ loadrundate <- format(Sys.time(), '%Y-%m-%d')
 modelname <- "glmmTMB_beta_ontogeny_time"
 modelfixef <- "time*ontogeny"
  
-# fits <- readRDS(glue("Fits/{loadrunid}_Fit_{modelname}_{loadrundate}.rds"))
-# Comb <- readRDS(glue("Data/Combinations_{modelname}.rds"))
+fits <- readRDS(glue("Fits/{loadrunid}_Fit_{modelname}_{loadrundate}.rds"))
+Comb <- readRDS(glue("Data/Combinations_{modelname}.rds"))
+
 
 
 # Subset to converged models ---------------------------------
@@ -607,12 +608,12 @@ getTitleColumn <- function(fit){
 }
 
 
-printModelRows <- function(fuu) {
-  s <- summary(fuu)
+printModelRows <- function(fit) {
+  s <- summary(fit)
   
-  Titles <- getTitleColumn(fuu) # One column, will be recycled
+  Titles <- getTitleColumn(fit) # One column, will be recycled
   
-  if (fuu$inventory != "ES_IFN")  { # 
+  if (fit$inventory != "ES_IFN")  { # 
     C_cond <- t(s$coefficients$cond[c(1:3, nrow(s$coefficients$cond)),c(1,2,4)]) %>%
       as.data.frame() %>%
       dplyr::rename_with(~ paste0(.x, "_cond"))
@@ -623,13 +624,13 @@ printModelRows <- function(fuu) {
     
   } else {
     # ontogeny estimate adult
-    o_cond_adult <- emmeans::emmeans(fuu, specs = identity ~ ontogeny,
+    o_cond_adult <- emmeans::emmeans(fit, specs = identity ~ ontogeny,
                                      transform = "none", #
                                      component = "cond")$contrasts[1,] %>%
       as.data.frame()
     
     # time estimate adult
-    t_cond_adult <- emmeans::emtrends(fuu,
+    t_cond_adult <- emmeans::emtrends(fit,
                                       specs = identity ~ ontogeny,
                                       var = "time",
                                       transform = "none",
@@ -638,14 +639,14 @@ printModelRows <- function(fuu) {
     
     
     # ontogeny contrast adult - juvenile, k is the last level
-    o_cond_juv <- emmeans::emmeans(fuu, specs = trt.vs.ctrl1 ~ ontogeny,
+    o_cond_juv <- emmeans::emmeans(fit, specs = trt.vs.ctrl1 ~ ontogeny,
                                    
                                    transform = "none", #
                                    component = "cond")$contrasts[1,] %>%
       as.data.frame()
     
     # time contrast adult - juvenile
-    t_cond_juv <- emmeans::emtrends(fuu,
+    t_cond_juv <- emmeans::emtrends(fit,
                                     specs = trt.vs.ctrl1 ~ ontogeny,
                                     
                                     var = "time",
@@ -664,13 +665,13 @@ printModelRows <- function(fuu) {
     
     ##### disp
     # ontogeny estimate adult
-    o_disp_adult <- emmeans::emmeans(fuu, specs = identity ~ ontogeny,
+    o_disp_adult <- emmeans::emmeans(fit, specs = identity ~ ontogeny,
                                      transform = "none", #
                                      component = "disp")$contrasts[1,] %>%
       as.data.frame()
     
     # time estimate adult
-    t_disp_adult <- emmeans::emtrends(fuu,
+    t_disp_adult <- emmeans::emtrends(fit,
                                       specs = identity ~ ontogeny,
                                       var = "time",
                                       transform = "none",
@@ -679,13 +680,13 @@ printModelRows <- function(fuu) {
     
     
     # ontogeny contrast adult - juvenile
-    o_disp_juv <- emmeans::emmeans(fuu, specs = trt.vs.ctrl1 ~ ontogeny,
+    o_disp_juv <- emmeans::emmeans(fit, specs = trt.vs.ctrl1 ~ ontogeny,
                                    transform = "none", #
                                    component = "disp")$contrasts[1,] %>%
       as.data.frame()
     
     # time contrast adult - juvenile
-    t_disp_juv <- emmeans::emtrends(fuu,
+    t_disp_juv <- emmeans::emtrends(fit,
                                     specs = trt.vs.ctrl1 ~ ontogeny,
                                     var = "time",
                                     transform = "none",
@@ -700,10 +701,10 @@ printModelRows <- function(fuu) {
       setNames(c("(Intercept)_disp", "time_disp", "ontogenysmall_disp", "time:ontogenysmall_disp"))
   }
   
-  TE <- getTimeEffect(fuu, transform = "response", ontogenylevel = "small")
+  TE <- getTimeEffect(fit, transform = "response", ontogenylevel = "small")
   TE_col <- data.frame(timeeffect = c(TE$estimate, TE$SE, TE$p.value))
   
-  OE <- getOntogenyEffect(fuu, transform = "response")
+  OE <- getOntogenyEffect(fit, transform = "response")
   OE_col <- data.frame(ontogenyeffect = c(OE$estimate, OE$SE, OE$p.value))
   
   isrelevant <- OE$signif & (TE$signif_rejneg | TE$signif_rejpos)
@@ -711,21 +712,25 @@ printModelRows <- function(fuu) {
 
   # opposite <- sign(OE$estimate) != sign(TE$estimate) & OE$p.value < 0.05
   
-  D <- getData(fuu)
+  D <- getData(fit)
   
   Years <- c(str_split_fixed(D$years,"–" ,n = 2), "")  # vector[3]!
   Years[1] <- paste0(Years[1], "–")
-    
+  
+  ## no. of presences juveniles:adults. Lazy way of putting them into one column.
+  N_pres <- table(fit$frame$ontogeny)
+  N_pres <- c(paste0(N_pres["small"], ":"), paste(N_pres["big"]), "")
   
   # sd_ranef <- attr(s$varcor$cond$clusterid, "stddev")
   # n_clusters <- as.numeric(s$ngrps$cond)
   n_clusters_ES <- nrow(s$coefficients$cond) - 4
   
-  
+
+  ## Bind columns. Some have 3 rows, others get recycled.
   R <- bind_cols(Titles, type = rownames(C_cond),
                  C_cond, C_disp,
                  OE_col, TE_col, direction = direction,
-                 n = s$nobs,
+                 n_pres = N_pres,
                  n_clusters_ES = replace(n_clusters_ES, n_clusters_ES == 0, NA),
                  n_plots = D$n_plots,
                  yr_betweenAvg = D$yr_betweenAvg,
@@ -740,7 +745,7 @@ printModelRows <- function(fuu) {
   
   rownames(R) <- NULL
   
-  # time <- getEffectColumns(fuu, id)
+  # time <- getEffectColumns(fit, id)
   return(R)
 }
 
