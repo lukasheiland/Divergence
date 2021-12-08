@@ -1,6 +1,6 @@
 # Divergent occurrences of juvenile and adult trees are explained by both environmental change and ontogenetic effects
 
-This repository provides code and aggregated data to reproduce the simulations and analyses in "Divergent occurrences of juvenile and adult trees are explained by both environmental change and ontogenetic niche shifts". Session info is provided in 'DEF_sessionInfo__2020-11-02.*'.
+This repository provides code and aggregated data to reproduce the simulations and analyses in "Divergent occurrences of juvenile and adult trees are explained by both environmental change and ontogenetic effects". Session info is provided in 'DEF_sessionInfo__2020-11-02.*'.
 
 The simulations are contained in
 - 'Sim ontogenetic stages.R'
